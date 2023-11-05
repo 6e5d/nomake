@@ -16,32 +16,33 @@ def runner(cmd):
 			print(p.returncode, " ".join(cmd))
 			sys.exit(1)
 
-def build(proj, depinfo):
+def build(proj, depinfo, rebuild):
 	name = proj.name
 	if "main.c" in depinfo.cfiles:
-		object = f"target/{name}.elf"
+		obj = f"target/{name}.elf"
 	else:
-		object = f"target/lib{name}.so"
+		obj = f"target/lib{name}.so"
 	# test if project contains any c files, otherwise header only
 	if depinfo.cfiles:
-		cmd = build_cmd(proj, depinfo, object, False)
+		cmd = build_cmd(proj, depinfo, obj, False, rebuild)
 		runner(cmd)
 	test_file = proj / "src/test.c"
 	if test_file.exists():
-		object = "target/test.elf"
-		cmd = build_cmd(proj, depinfo, object, True)
+		obj = "target/test.elf"
+		cmd = build_cmd(proj, depinfo, obj, True, rebuild)
 		runner(cmd)
 
-def build_cmd(proj, depinfo, object, test):
+def build_cmd(proj, depinfo, obj, test, rebuild):
 	name = proj.name
 	cmd = cc.clang()
-	if object.endswith(".so"):
+	if obj.endswith(".so"):
 		cmd += ["-fPIE", "-shared"]
-	if Path(proj / object).exists():
-		if Path(proj / object).stat().st_mtime > depinfo.latest:
-			print("utd", object)
+	if Path(proj / obj).exists():
+		if not rebuild and \
+			Path(proj / obj).stat().st_mtime > depinfo.latest:
+			print("utd", obj)
 			return []
-	cmd += ["-o", object]
+	cmd += ["-o", obj]
 	for dep in depinfo.deps:
 		sopath = dep / "target" / f"lib{dep.name}.so"
 		# test if sopath is real library(or virtual)
@@ -57,7 +58,7 @@ def build_cmd(proj, depinfo, object, test):
 	cmd += list(set(links))
 	return cmd
 
-def build_recurse(proj, depth):
+def build_recurse(proj, depth, rebuild):
 	if proj in done:
 		return
 	print(depth, "entering", proj.name)
@@ -67,7 +68,7 @@ def build_recurse(proj, depth):
 	depinfo = Depinfo()
 	depinfo.build(proj)
 	for proj2 in depinfo.deps:
-		build_recurse(proj2, depth + 1)
+		build_recurse(proj2, depth + 1, rebuild)
 	os.chdir(proj)
-	build(proj, depinfo)
+	build(proj, depinfo, rebuild)
 	done.add(proj)

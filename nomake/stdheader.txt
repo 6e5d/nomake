@@ -27,3 +27,4 @@ time.h
 uchar.h
 wchar.h
 wctype.h
+fcntl.h
