@@ -1,5 +1,5 @@
 def gcc():
-	cmd = ["gcc", "--std=c11",
+	cmd = ["gcc", "--std=gnu17",
 		"-Wall",
 		"-Wextra",
 		"-Wconversion",
@@ -10,7 +10,7 @@ def gcc():
 def clang():
 	cmd = [
 		"clang",
-		"--std=c11",
+		"--std=gnu17",
 		"-Wmost",
 		"-Wconversion",
 		"-Wl,-unresolved-symbols=ignore-in-shared-libs",
