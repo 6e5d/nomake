@@ -10,7 +10,6 @@ done = set()
 
 def runner(cmd):
 	if cmd:
-		print(" ".join(cmd))
 		p = run(cmd)
 		if p.returncode != 0:
 			print(p.returncode, " ".join(cmd))
@@ -25,11 +24,13 @@ def build(proj, depinfo, rebuild):
 	# test if project contains any c files, otherwise header only
 	if depinfo.cfiles:
 		cmd = build_cmd(proj, depinfo, obj, False, rebuild)
+		print(obj, "argc", len(cmd))
 		runner(cmd)
 	test_file = proj / "src/test.c"
 	if test_file.exists():
 		obj = "target/test.elf"
 		cmd = build_cmd(proj, depinfo, obj, True, rebuild)
+		print("test argc", len(cmd))
 		runner(cmd)
 
 def build_cmd(proj, depinfo, obj, test, rebuild):
