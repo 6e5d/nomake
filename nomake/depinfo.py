@@ -45,9 +45,9 @@ class Depinfo:
 			mtime = file.stat().st_mtime
 			self.latest = max(mtime, self.latest)
 			if file.name.endswith(".c"):
-				if file.name == "test.c":
-					continue
-				self.cfiles.add(file.name)
+				# do not distinguish test dependency
+				if file.name != "test.c":
+					self.cfiles.add(file.name)
 			systems2, relatives2 = include_resolver(file)
 			self.systems |= systems2
 			self.relatives |= relatives2
