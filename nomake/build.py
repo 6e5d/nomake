@@ -15,34 +15,11 @@ def runner(cmd):
 			print(p.returncode, " ".join(cmd))
 			sys.exit(1)
 
-def build(proj, depinfo, rebuild):
-	name = proj.name
-	if "main.c" in depinfo.cfiles:
-		obj = f"target/{name}.elf"
-	else:
-		obj = f"target/lib{name}.so"
-	# test if project contains any c files, otherwise header only
-	if depinfo.cfiles:
-		cmd = build_cmd(proj, depinfo, obj, False, rebuild)
-		print(obj, "argc", len(cmd))
-		runner(cmd)
-	test_file = proj / "src/test.c"
-	if test_file.exists():
-		obj = "target/test.elf"
-		cmd = build_cmd(proj, depinfo, obj, True, rebuild)
-		print("test argc", len(cmd))
-		runner(cmd)
-
 def build_cmd(proj, depinfo, obj, test, rebuild):
 	name = proj.name
 	cmd = cc.clang()
 	if obj.endswith(".so"):
 		cmd += ["-fPIE", "-shared"]
-	if Path(proj / obj).exists():
-		if not rebuild and \
-			Path(proj / obj).stat().st_mtime > depinfo.latest:
-			print("utd", obj)
-			return []
 	cmd += ["-o", obj]
 	for dep in depinfo.deps:
 		sopath = dep / "target" / f"lib{dep.name}.so"
@@ -59,7 +36,74 @@ def build_cmd(proj, depinfo, obj, test, rebuild):
 	cmd += list(set(links))
 	return cmd
 
+def build_list(d, proj):
+	depinfo = Depinfo()
+	depinfo.build(proj)
+	for proj2 in depinfo.deps:
+		build_list(d, proj2)
+	d.append((proj, depinfo))
+
+def getmtime(file):
+	if file.exists():
+		return file.stat().st_mtime
+	else:
+		return 0
+
+def test_obsolete(p, v):
+	name = p.name
+	earliest = 1<<63;
+	if v.objs[0]:
+		file = p / f"target/{name}.elf"
+		v.objs[0] = file
+		earliest = min(getmtime(file), earliest)
+	if v.objs[1]:
+		file = p / f"target/lib{name}.so"
+		v.objs[1] = file
+		earliest = min(getmtime(file), earliest)
+	if v.objs[2]:
+		file = p / f"target/test.elf"
+		v.objs[2] = file
+		earliest = min(getmtime(file), earliest)
+	if earliest < v.latest:
+		v.state = 2
+
 def build_recurse(proj, depth, rebuild):
+	l = []
+	build_list(l, proj)
+
+	# keep only first occurrence
+	s = set()
+	l2 = []
+	for p, v in l:
+		if p in s:
+			continue
+		s.add(p)
+		l2.append((p, v))
+
+	for p, v in l2:
+		# also overwrite obj
+		test_obsolete(p, v)
+
+	# find weak build
+	for p, v in l2:
+		if v.state > 0:
+			continue
+		for dep in v.deps:
+			if [v for p, v in l2 if p == dep][0].state == 2:
+				v.state = 1
+
+	for p, v in l2:
+		if v.state == 0:
+			continue
+		print(f"\x1b[3{v.state + 2}m{p.name}\x1b[0m")
+		for idx, obj in enumerate(v.objs):
+			if obj == False:
+				continue
+			os.chdir(p)
+			cmd = build_cmd(p, v, str(obj), idx == 2, True)
+			runner(cmd)
+
+def __deprecated():
 	if proj in done:
 		return
 	print(depth, "entering", proj.name)

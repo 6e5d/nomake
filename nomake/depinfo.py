@@ -24,6 +24,8 @@ def include_resolver(file):
 class Depinfo:
 	def __init__(self):
 		self.latest = 0
+		self.objs = [False, False, False] # main lib test
+		self.state = 0 # 0 = no rebuild, 1 = weak rebuild, 2 = strong
 		self.systems = set()
 		self.relatives = set()
 		self.cfiles = set()
@@ -74,7 +76,17 @@ class Depinfo:
 			if system in stds:
 				continue
 			self.sysdeps.add(system)
+	# build objects
+	def b4(self, proj):
+		src = proj / "src"
+		if (src / "main.c").exists():
+			self.objs[0] = True
+		elif self.cfiles and self.cfiles != ["test.c"]:
+			self.objs[1] = True
+		if (src / "test.c").exists():
+			self.objs[2] = True
 	def build(self, proj):
 		self.b1(proj)
 		self.b2(proj)
 		self.b3()
+		self.b4(proj)
