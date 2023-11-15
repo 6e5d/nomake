@@ -1,0 +1,1 @@
+bug: x depend on y, if y rebuilt x must be rebuilt, but no need to go recursive

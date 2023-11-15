@@ -1,9 +1,12 @@
 from subprocess import run
 
 checks = [
-	# we don't write cpp
-	"-cppcoreguidelines-*",
-	"-hicpp-*",
+	# I don't want to rely on compilers optimizations to eliminate init
+	"-cppcoreguidelines-init-variables",
+	"-cppcoreguidelines-avoid-magic-numbers",
+	# NOTE: needs more discussion
+	"-cert-err34-c",
+	"-hicpp-uppercase-literal-suffix",
 	# i don't use this style
 	"-llvm-header-guard",
 	"-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling",
