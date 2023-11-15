@@ -9,6 +9,7 @@ checks = [
 	"-hicpp-uppercase-literal-suffix",
 	# i don't use this style
 	"-llvm-header-guard",
+	"-google-readability-todo",
 	"-clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling",
 	# clang-tidy failed to detect NULL check after realloc
 	"-bugprone-suspicious-realloc-usage",
