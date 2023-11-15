@@ -83,6 +83,8 @@ def build_recurse(proj, depth, rebuild):
 	for p, v in l2:
 		# also overwrite obj
 		test_obsolete(p, v)
+		if rebuild:
+			v.state = 2
 
 	# find weak build
 	for p, v in l2:
