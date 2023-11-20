@@ -16,6 +16,7 @@ def runner(cmd):
 			sys.exit(1)
 
 def build_cmd(proj, depinfo, obj, test, rebuild):
+	Path("target").mkdir(exist_ok = True)
 	name = proj.name
 	cmd = cc.clang()
 	if obj.endswith(".so"):
