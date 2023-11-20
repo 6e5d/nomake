@@ -1,0 +1,10 @@
+we fixed a bug:
+
+currently the rebuild logic is:
+
+if B depends on A, A changed, then B will be rebuilt.
+
+However this model has a bug: if I run nomake inside B,
+then when building A, it will think all projects are updated.
+To solve this, instead of maintaining the dependency to check rebuild,
+we should compare all the library targets

@@ -69,6 +69,13 @@ class Depinfo:
 			p = p.parent
 			if p == proj:
 				continue
+
+			# check mtime
+			name = p.name
+			obj = p / f"target/lib{name}.so"
+			mtime = obj.stat().st_mtime
+			self.latest = max(mtime, self.latest)
+
 			self.deps.add(p.resolve())
 	# build sysdeps for -l linking options
 	def b3(self):

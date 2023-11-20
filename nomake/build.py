@@ -87,18 +87,10 @@ def build_recurse(proj, depth, rebuild):
 		if rebuild:
 			v.state = 2
 
-	# find weak build
-	for p, v in l2:
-		if v.state > 0:
-			continue
-		for dep in v.deps:
-			if [v for p, v in l2 if p == dep][0].state == 2:
-				v.state = 1
-
 	for p, v in l2:
 		if v.state == 0:
 			continue
-		print(f"\x1b[3{v.state + 2}m{p.name}\x1b[0m")
+		print(p.name)
 		for idx, obj in enumerate(v.objs):
 			if obj == False:
 				continue
