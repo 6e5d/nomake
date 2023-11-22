@@ -70,11 +70,11 @@ class Depinfo:
 			if p == proj:
 				continue
 
-			# check mtime
-			name = p.name
-			obj = p / f"target/lib{name}.so"
-			mtime = obj.stat().st_mtime
-			self.latest = max(mtime, self.latest)
+			# no need? as long as header file not change its safe
+			# name = p.name
+			# obj = p / f"target/lib{name}.so"
+			# mtime = obj.stat().st_mtime
+			# self.latest = max(mtime, self.latest)
 
 			self.deps.add(p.resolve())
 	# build sysdeps for -l linking options
