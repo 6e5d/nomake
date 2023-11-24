@@ -11,6 +11,8 @@ def clang():
 	cmd = [
 		"clang",
 		"--std=gnu17",
+		#"-D",
+		#"_POSIX_C_SOURCE=200809L",
 		"-Weverything",
 
 		"-Wno-unused-parameter", # too much for template functions
@@ -18,6 +20,7 @@ def clang():
 		# common lib cannot pass: project/dependency
 		"-Wno-cast-function-type-strict", # vkhelper/vulkan
 		"-Wno-cast-qual", # wlbasic/xdg
+		"-Wno-bad-function-cast", # not good for floor/round/ceil
 		# too common for c
 		"-Wno-padded",
 		"-Wno-unsafe-buffer-usage",
