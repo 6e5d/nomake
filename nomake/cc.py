@@ -14,6 +14,7 @@ def clang():
 		#"-D",
 		#"_POSIX_C_SOURCE=200809L",
 		"-Weverything",
+		"-Werror",
 
 		"-Wno-unused-parameter", # too much for template functions
 		"-Wno-switch-enum", # it disallows default
