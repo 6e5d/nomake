@@ -28,3 +28,4 @@ uchar.h
 wchar.h
 wctype.h
 fcntl.h
+dirent.h
