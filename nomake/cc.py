@@ -1,21 +1,25 @@
+def common():
+	return ["-O3",
+		"--std=c17", "-D", "_POSIX_C_SOURCE=200809L",
+		# warning should block, or mtime gets skipped in second build
+		"-Werror",
+	]
+
 def gcc():
-	cmd = ["gcc", "--std=gnu17",
+	cmd = ["gcc"] + common() + [
 		"-Wall",
 		"-Wextra",
 		"-Wconversion",
-		"--allow-shlib-undefined",
+		"-Wpedantic",
+		"-Wno-unused-parameter",
+		"-Wl,--no-undefined",
+		"-Wl,--no-allow-shlib-undefined",
 	]
 	return cmd
 
 def clang():
-	cmd = [
-		"clang",
-		"--std=gnu17",
-		#"-D",
-		#"_POSIX_C_SOURCE=200809L",
+	cmd = ["clang"] + common() + [
 		"-Weverything",
-		"-Werror",
-
 		"-Wno-unused-parameter", # too much for template functions
 		"-Wno-switch-enum", # it disallows default
 		# common lib cannot pass: project/dependency
@@ -25,7 +29,6 @@ def clang():
 		# too common for c
 		"-Wno-padded",
 		"-Wno-unsafe-buffer-usage",
-		"-Wno-gnu-pointer-arith",
 		# c99
 		"-Wno-declaration-after-statement",
 	]

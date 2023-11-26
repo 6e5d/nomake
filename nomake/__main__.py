@@ -1,7 +1,7 @@
-import sys
+import sys, time
 from pathlib import Path
 
-from .build import build_recurse
+from .build import build
 from .check import nomake_check
 
 rebuild = False
@@ -15,4 +15,6 @@ if len(sys.argv) >= 3:
 		rebuild = True
 	else:
 		raise Exception("check/rebuild/none")
-build_recurse(Path(path).resolve(), 0, rebuild)
+t = time.time()
+build(Path(path).resolve(), 0, rebuild)
+print("TOTAL TIME:", time.time() - t)

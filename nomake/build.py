@@ -1,4 +1,5 @@
 import sys, os
+import time
 from subprocess import run
 from pathlib import Path
 
@@ -18,20 +19,24 @@ def runner(cmd):
 def build_cmd(proj, depinfo, obj, test, rebuild):
 	Path("target").mkdir(exist_ok = True)
 	name = proj.name
-	cmd = cc.clang()
+	#cmd = cc.clang()
+	cmd = cc.gcc()
+	# order is important
 	if obj.endswith(".so"):
-		cmd += ["-fPIE", "-shared"]
+		cmd += ["-fPIC", "-shared"]
+	else:
+		cmd += ["-fPIE"]
 	cmd += ["-o", obj]
-	for dep in depinfo.deps:
-		sopath = dep / "target" / f"lib{dep.name}.so"
-		# test if sopath is real library(or virtual)
-		if sopath.is_file():
-			cmd.append(str(sopath))
 	for c in depinfo.cfiles:
 		cmd.append(str(Path(f"src/{c}").resolve()))
 	if test:
 		cmd.append("src/test.c")
 	links = []
+	for dep in depinfo.deps:
+		sopath = dep / "target" / f"lib{dep.name}.so"
+		# test if sopath is real library(or virtual)
+		if sopath.is_file():
+			cmd.append(str(sopath))
 	for c in depinfo.sysdeps:
 		links += link_lookup(c)
 	cmd += list(set(links))
@@ -66,9 +71,10 @@ def test_obsolete(p, v):
 		v.objs[2] = file
 		earliest = min(getmtime(file), earliest)
 	if earliest < v.latest:
-		v.state = 2
+		return True
+	return False
 
-def build_recurse(proj, depth, rebuild):
+def build(proj, depth, rebuild):
 	l = []
 	build_list(l, proj)
 
@@ -83,32 +89,16 @@ def build_recurse(proj, depth, rebuild):
 
 	for p, v in l2:
 		# also overwrite obj
-		test_obsolete(p, v)
-		if rebuild:
-			v.state = 2
-
-	for p, v in l2:
-		if v.state == 0:
+		if not test_obsolete(p, v) and not rebuild:
 			continue
-		print(p.name)
+		t = time.time()
+		sizes = 0
 		for idx, obj in enumerate(v.objs):
 			if obj == False:
 				continue
 			os.chdir(p)
 			cmd = build_cmd(p, v, str(obj), idx == 2, True)
 			runner(cmd)
-
-def __deprecated():
-	if proj in done:
-		return
-	print(depth, "entering", proj.name)
-	if not (proj / "src").is_dir():
-		assert (proj / "include").is_dir()
-	(proj / "target").mkdir(exist_ok = True)
-	depinfo = Depinfo()
-	depinfo.build(proj)
-	for proj2 in depinfo.deps:
-		build_recurse(proj2, depth + 1, rebuild)
-	os.chdir(proj)
-	build(proj, depinfo, rebuild)
-	done.add(proj)
+			sizes += obj.stat().st_size
+		dt = time.time() - t
+		print(p.name, f"{dt:.2f}", sizes)

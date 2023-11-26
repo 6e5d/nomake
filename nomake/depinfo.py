@@ -25,7 +25,6 @@ class Depinfo:
 	def __init__(self):
 		self.latest = 0
 		self.objs = [False, False, False] # main lib test
-		self.state = 0 # 0 = no rebuild, 1 = weak rebuild, 2 = strong
 		self.systems = set()
 		self.relatives = set()
 		self.cfiles = set()
