@@ -9,6 +9,9 @@ from . import cc
 
 done = set()
 
+#ccc = cc.clang
+ccc = cc.gcc
+
 def runner(cmd):
 	if cmd:
 		p = run(cmd)
@@ -18,25 +21,25 @@ def runner(cmd):
 
 def build_cmd(proj, depinfo, obj, test, rebuild):
 	Path("target").mkdir(exist_ok = True)
+	cmd = ccc()
 	name = proj.name
-	#cmd = cc.clang()
-	cmd = cc.gcc()
 	# order is important
-	if obj.endswith(".so"):
+	if obj.suffix == ".so":
 		cmd += ["-fPIC", "-shared"]
 	else:
 		cmd += ["-fPIE"]
-	cmd += ["-o", obj]
 	for c in depinfo.cfiles:
 		cmd.append(str(Path(f"src/{c}").resolve()))
 	if test:
 		cmd.append("src/test.c")
+	cmd += ["-o", str(obj)]
 	links = []
 	for dep in depinfo.deps:
 		sopath = dep / "target" / f"lib{dep.name}.so"
 		# test if sopath is real library(or virtual)
-		if sopath.is_file():
-			cmd.append(str(sopath))
+		if not sopath.is_file():
+			continue
+		cmd.append(str(sopath))
 	for c in depinfo.sysdeps:
 		links += link_lookup(c)
 	cmd += list(set(links))
@@ -97,7 +100,7 @@ def build(proj, depth, rebuild):
 			if obj == False:
 				continue
 			os.chdir(p)
-			cmd = build_cmd(p, v, str(obj), idx == 2, True)
+			cmd = build_cmd(p, v, obj, idx == 2, True)
 			runner(cmd)
 			sizes += obj.stat().st_size
 		dt = time.time() - t

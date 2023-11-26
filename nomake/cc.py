@@ -3,6 +3,8 @@ def common():
 		"--std=c17", "-D", "_POSIX_C_SOURCE=200809L",
 		# warning should block, or mtime gets skipped in second build
 		"-Werror",
+		"-Wl,--no-undefined",
+		"-Wl,--no-allow-shlib-undefined",
 	]
 
 def gcc():
@@ -12,8 +14,6 @@ def gcc():
 		"-Wconversion",
 		"-Wpedantic",
 		"-Wno-unused-parameter",
-		"-Wl,--no-undefined",
-		"-Wl,--no-allow-shlib-undefined",
 	]
 	return cmd
 
