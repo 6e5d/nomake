@@ -1,6 +1,13 @@
 def common():
 	return ["-O3",
 		"--std=c17", "-D", "_POSIX_C_SOURCE=200809L",
+		"-include", "assert.h",
+		"-include", "stddef.h",
+		"-include", "stdio.h",
+		"-include", "stdlib.h",
+		"-include", "string.h",
+		"-include", "stdbool.h",
+		"-include", "stdint.h",
 		# warning should block, or mtime gets skipped in second build
 		"-Werror",
 		"-Wl,--no-undefined",

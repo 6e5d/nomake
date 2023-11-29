@@ -16,5 +16,5 @@ if len(sys.argv) >= 3:
 	else:
 		raise Exception("check/rebuild/none")
 t = time.time()
-build(Path(path).resolve(), 0, rebuild)
+build(Path(path).resolve(), rebuild)
 print("TOTAL TIME:", time.time() - t)

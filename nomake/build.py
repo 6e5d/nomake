@@ -5,12 +5,13 @@ from pathlib import Path
 
 from .link_lookup import link_lookup
 from .depinfo import Depinfo
+from .order import build_deps, tsort
 from . import cc
 
 done = set()
 
-#ccc = cc.clang
-ccc = cc.gcc
+ccc = cc.clang
+#ccc = cc.gcc
 
 def runner(cmd):
 	if cmd:
@@ -77,9 +78,14 @@ def test_obsolete(p, v):
 		return True
 	return False
 
-def build(proj, depth, rebuild):
+def build(proj, rebuild):
+	deps, rdeps = build_deps(proj)
 	l = []
-	build_list(l, proj)
+	for proj in reversed(tsort(deps, rdeps)):
+		depinfo = Depinfo()
+		depinfo.build(proj)
+		l.append((proj, depinfo))
+	print([x[0].name for x in l])
 
 	# keep only first occurrence
 	s = set()
