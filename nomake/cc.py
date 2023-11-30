@@ -1,6 +1,6 @@
 def common():
 	return ["-O3",
-		"--std=c17", "-D", "_POSIX_C_SOURCE=200809L",
+		"--std=c2x", "-D", "_POSIX_C_SOURCE=200809L",
 		"-include", "assert.h",
 		"-include", "stddef.h",
 		"-include", "stdio.h",
@@ -27,8 +27,9 @@ def gcc():
 def clang():
 	cmd = ["clang"] + common() + [
 		"-Weverything",
-		"-Wno-unused-parameter", # too much for template functions
+		#"-Wno-unused-parameter", # FIXME
 		"-Wno-switch-enum", # it disallows default
+		"-Wno-missing-noreturn", # noreturn is even deprecated in c23
 		# common lib cannot pass: project/dependency
 		"-Wno-cast-function-type-strict", # vkhelper/vulkan
 		"-Wno-cast-qual", # wlbasic/xdg
