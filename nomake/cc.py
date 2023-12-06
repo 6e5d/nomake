@@ -20,23 +20,20 @@ def gcc():
 		"-Wextra",
 		"-Wconversion",
 		"-Wpedantic",
-		"-Wno-unused-parameter",
 	]
 	return cmd
 
 def clang():
 	cmd = ["clang"] + common() + [
 		"-Weverything",
-		#"-Wno-unused-parameter", # FIXME
 		"-Wno-switch-enum", # it disallows default
-		"-Wno-missing-noreturn", # noreturn is even deprecated in c23
-		# common lib cannot pass: project/dependency
-		"-Wno-cast-function-type-strict", # vkhelper/vulkan
-		"-Wno-cast-qual", # wlbasic/xdg
-		"-Wno-bad-function-cast", # not good for floor/round/ceil
-		# too common for c
+		# wayland-scanner cannot handle it
+		# first of all the design of qualifier in c is problematic
+		"-Wno-cast-qual",
+		# suppress warning by compiler attributes are not acceptable
 		"-Wno-padded",
 		"-Wno-unsafe-buffer-usage",
+		"-Wno-missing-noreturn",
 		# c99
 		"-Wno-declaration-after-statement",
 	]
