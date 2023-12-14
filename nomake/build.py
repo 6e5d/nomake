@@ -1,113 +1,103 @@
-import sys, os
+import sys, os, shutil
 import time
-from subprocess import run
 from pathlib import Path
 
-from .link_lookup import link_lookup
-from .depinfo import Depinfo
+from buildc.link_lookup import link_lookup
+from buildc.depinfo import Depinfo
+from buildc.build import build as buildc
+from project_type import project_type
 from .order import build_deps, tsort
-from . import cc
+from .glsl import build_glsl
 
 done = set()
 
-ccc = cc.clang
-#ccc = cc.gcc
-
-def runner(cmd):
-	if cmd:
-		p = run(cmd)
-		if p.returncode != 0:
-			print(p.returncode, " ".join(cmd))
-			sys.exit(1)
-
-def build_cmd(proj, depinfo, obj, test, rebuild):
-	Path("build").mkdir(exist_ok = True)
-	cmd = ccc()
-	name = proj.name
-	# order is important
-	if obj.suffix == ".so":
-		cmd += ["-fPIC", "-shared"]
-	else:
-		cmd += ["-fPIE"]
-	for c in depinfo.cfiles:
-		cmd.append(str(Path(f"src/{c}").resolve()))
-	if test:
-		cmd.append("src/test.c")
-	cmd += ["-o", str(obj)]
-	links = []
-	for dep in depinfo.deps:
-		sopath = dep / "build" / f"lib{dep.name}.so"
-		# test if sopath is real library(or virtual)
-		if not sopath.is_file():
-			continue
-		cmd.append(str(sopath))
-	for c in depinfo.sysdeps:
-		links += link_lookup(c)
-	cmd += list(set(links))
-	return cmd
+def read_deps(proj):
+	deps = []
+	path = proj / ".lpat/deps.txt"
+	if path.exists():
+		for line in open(path):
+			line = line.strip()
+			if not line:
+				continue
+			deps.append(line)
+	return deps
 
 def build_list(d, proj):
-	depinfo = Depinfo()
-	depinfo.build(proj)
-	for proj2 in depinfo.deps:
+	deps = read_deps(proj)
+	for proj2 in deps:
 		build_list(d, proj2)
-	d.append((proj, depinfo))
+	d.append(proj)
 
-def getmtime(file):
-	if file.exists():
-		return file.stat().st_mtime
+def min2(x, y):
+	if x == None:
+		return y
 	else:
-		return 0
+		return min(x, y)
 
-def test_obsolete(p, v):
+def max2(x, y):
+	if x == None:
+		return y
+	else:
+		return max(x, y)
+
+def test_obsolete(p, ty):
 	name = p.name
-	earliest = 1<<63;
-	if v.objs[0]:
-		file = p / f"build/{name}.elf"
-		v.objs[0] = file
-		earliest = min(getmtime(file), earliest)
-	if v.objs[1]:
-		file = p / f"build/lib{name}.so"
-		v.objs[1] = file
-		earliest = min(getmtime(file), earliest)
-	if v.objs[2]:
-		file = p / f"build/test.elf"
-		v.objs[2] = file
-		earliest = min(getmtime(file), earliest)
-	if earliest < v.latest:
-		return True
-	return False
+	eobj = None
+	lsrc = None
+	for parent, _dirs, files in os.walk(p):
+		parent = Path(parent)
+		for file in files:
+			mt = (parent / file).stat().st_mtime
+			if parent.is_relative_to(p / "build"):
+				eobj = min2(eobj, mt)
+			else:
+				lsrc = max2(lsrc, mt)
+	return lsrc, eobj
 
-def build(proj, rebuild):
+def build_list(proj):
 	deps, rdeps = build_deps(proj)
 	l = []
 	for proj in reversed(tsort(deps, rdeps)):
-		depinfo = Depinfo()
-		depinfo.build(proj)
-		l.append((proj, depinfo))
-	print([x[0].name for x in l])
+		l.append(proj)
+	print([x.name for x in l])
 
 	# keep only first occurrence
 	s = set()
 	l2 = []
-	for p, v in l:
+	for p in l:
 		if p in s:
 			continue
 		s.add(p)
-		l2.append((p, v))
+		l2.append(p)
+	return deps, rdeps, l2
 
-	for p, v in l2:
-		# also overwrite obj
-		if not test_obsolete(p, v) and not rebuild:
-			continue
-		t = time.time()
-		sizes = 0
-		for idx, obj in enumerate(v.objs):
-			if obj == False:
+def build(proj, rebuild):
+	deps, rdeps, l2 = build_list(proj)
+	latest_src = dict()
+	for p in l2:
+		ty = project_type(p)
+		lsrc, eobj = test_obsolete(p, ty)
+		latest_src[p] = lsrc
+		if rebuild or eobj == None or eobj <= lsrc:
+			pass
+		else:
+			for dep in deps[p]:
+				if eobj <= latest_src[dep]:
+					break
+			else:
 				continue
-			os.chdir(p)
-			cmd = build_cmd(p, v, obj, idx == 2, True)
-			runner(cmd)
-			sizes += obj.stat().st_size
+		if ty not in ["c", "c3", "glsl"]:
+			continue
+		if (p / "build").exists():
+			shutil.rmtree(p / "build")
+		(p / "build").mkdir()
+		t = time.time()
+		match ty:
+			case "c":
+				buildc(p)
+			case "glsl":
+				build_glsl(p)
+			case x:
+				raise Exception("unimplemented")
 		dt = time.time() - t
-		print(p.name, f"{dt:.2f}", sizes)
+		print(p.name, f"{dt:.2f}")

@@ -17,8 +17,6 @@ def build_deps(root):
 				if not line:
 					break
 				p2 = (proj / ".." / line).resolve()
-				if project_type(p2) != "c":
-					continue
 				deps[proj].append(p2)
 				if p2 not in rdeps:
 					rdeps[p2] = []
