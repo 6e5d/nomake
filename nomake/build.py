@@ -21,7 +21,7 @@ def runner(cmd):
 			sys.exit(1)
 
 def build_cmd(proj, depinfo, obj, test, rebuild):
-	Path("target").mkdir(exist_ok = True)
+	Path("build").mkdir(exist_ok = True)
 	cmd = ccc()
 	name = proj.name
 	# order is important
@@ -36,7 +36,7 @@ def build_cmd(proj, depinfo, obj, test, rebuild):
 	cmd += ["-o", str(obj)]
 	links = []
 	for dep in depinfo.deps:
-		sopath = dep / "target" / f"lib{dep.name}.so"
+		sopath = dep / "build" / f"lib{dep.name}.so"
 		# test if sopath is real library(or virtual)
 		if not sopath.is_file():
 			continue
@@ -63,15 +63,15 @@ def test_obsolete(p, v):
 	name = p.name
 	earliest = 1<<63;
 	if v.objs[0]:
-		file = p / f"target/{name}.elf"
+		file = p / f"build/{name}.elf"
 		v.objs[0] = file
 		earliest = min(getmtime(file), earliest)
 	if v.objs[1]:
-		file = p / f"target/lib{name}.so"
+		file = p / f"build/lib{name}.so"
 		v.objs[1] = file
 		earliest = min(getmtime(file), earliest)
 	if v.objs[2]:
-		file = p / f"target/test.elf"
+		file = p / f"build/test.elf"
 		v.objs[2] = file
 		earliest = min(getmtime(file), earliest)
 	if earliest < v.latest:
