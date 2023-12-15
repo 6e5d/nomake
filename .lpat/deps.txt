@@ -2,4 +2,5 @@ project_type
 gid
 buildc
 c3cpy
+pycparse
 pyltr
