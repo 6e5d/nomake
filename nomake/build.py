@@ -2,12 +2,11 @@ import sys, os, shutil
 import time
 from pathlib import Path
 
-from buildc.link_lookup import link_lookup
-from buildc.depinfo import Depinfo
 from buildc.build import build as buildc
 from project_type import project_type
 from .order import build_deps, tsort
 from .glsl import build_glsl
+from .c3 import build_c3
 
 done = set()
 
@@ -97,7 +96,9 @@ def build(proj, rebuild):
 				buildc(p)
 			case "glsl":
 				build_glsl(p)
+			case "c3":
+				build_c3(p)
 			case x:
-				raise Exception("unimplemented")
+				raise Exception(x)
 		dt = time.time() - t
 		print(p.name, f"{dt:.2f}")
