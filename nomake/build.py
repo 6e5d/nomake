@@ -6,7 +6,6 @@ from buildc.build import build as buildc
 from project_type import project_type
 from .order import build_deps, tsort
 from .glsl import build_glsl
-from .c3 import build_c3
 
 done = set()
 
@@ -96,8 +95,6 @@ def build(proj, rebuild):
 				buildc(p)
 			case "glsl":
 				build_glsl(p)
-			case "c3":
-				build_c3(p)
 			case x:
 				raise Exception(x)
 		dt = time.time() - t
