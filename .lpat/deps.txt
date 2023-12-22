@@ -2,3 +2,4 @@ project_type
 gid
 buildc
 pyltr
+pylisp

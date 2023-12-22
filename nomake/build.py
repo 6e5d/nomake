@@ -4,6 +4,7 @@ from pathlib import Path
 
 from buildc.build import build as buildc
 from project_type import project_type
+from cccpy.build import buildccc
 from .order import build_deps, tsort
 from .glsl import build_glsl
 
@@ -84,7 +85,7 @@ def build(proj, rebuild):
 					break
 			else:
 				continue
-		if ty not in ["c", "c3", "glsl"]:
+		if ty not in ["c", "ccc", "glsl"]:
 			continue
 		if (p / "build").exists():
 			shutil.rmtree(p / "build")
@@ -95,6 +96,8 @@ def build(proj, rebuild):
 				buildc(p)
 			case "glsl":
 				build_glsl(p)
+			case "ccc":
+				buildccc(p)
 			case x:
 				raise Exception(x)
 		dt = time.time() - t
