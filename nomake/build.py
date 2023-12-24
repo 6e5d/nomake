@@ -58,7 +58,7 @@ def build_list(proj):
 	l = []
 	for proj in reversed(tsort(deps, rdeps)):
 		l.append(proj)
-	print([x.name for x in l])
+	print("nomake", [x.name for x in l])
 
 	# keep only first occurrence
 	s = set()
@@ -101,4 +101,4 @@ def build(proj, rebuild):
 			case x:
 				raise Exception(x)
 		dt = time.time() - t
-		print(p.name, f"{dt:.2f}")
+		print("nomake", p.name, f"{dt:.2f}")
