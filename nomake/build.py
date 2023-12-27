@@ -4,7 +4,7 @@ from pathlib import Path
 
 from buildc.build import build as buildc
 from project_type import project_type
-from cccpy.build import buildccc
+from pycc0p.build import buildc0p
 from .order import build_deps, tsort
 from .glsl import build_glsl
 
@@ -97,7 +97,7 @@ def build(proj, rebuild):
 			case "glsl":
 				build_glsl(p)
 			case "ccc":
-				buildccc(p)
+				buildc0p(p)
 			case x:
 				raise Exception(x)
 		dt = time.time() - t

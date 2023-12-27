@@ -1,6 +1,7 @@
 project_type
 gid
 buildc
-cccpy
 pyltr
 pylisp
+pycc0p
+pyc0c
