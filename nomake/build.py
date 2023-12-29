@@ -90,6 +90,7 @@ def build(proj, rebuild):
 		if (p / "build").exists():
 			shutil.rmtree(p / "build")
 		(p / "build").mkdir()
+		print("nomake", p.name)
 		t = time.time()
 		match ty:
 			case "c":
@@ -101,4 +102,3 @@ def build(proj, rebuild):
 			case x:
 				raise Exception(x)
 		dt = time.time() - t
-		print("nomake", p.name, f"{dt:.2f}")
